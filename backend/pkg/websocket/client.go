@@ -41,3 +41,23 @@ func (c *Client) Read() {
 		fmt.Printf("Message Received: %+v\n", message)
 	}
 }
+
+// Write pumps messages from the Send channel to the WebSocket connection
+func (c *Client) Write() {
+	defer func() {
+		c.Conn.Close()
+	}()
+
+	for {
+		select {
+		case message, ok := <-c.Send:
+			if !ok {
+				// The pool closed the channel
+				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+
+			c.Conn.WriteMessage(websocket.TextMessage, message)
+		}
+	}
+}

@@ -13,6 +13,7 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	conn, err := websocket.Upgrade(w, r)
 	if err != nil {
 		fmt.Fprintf(w, "%+v\n", err)
+		return // Add this return to prevent proceeding with an error
 	}
 
 	client := &websocket.Client{
@@ -23,6 +24,9 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	}
 
 	pool.Register <- client
+
+	// Start both Read and Write goroutines
+	go client.Write()
 	client.Read()
 }
 
