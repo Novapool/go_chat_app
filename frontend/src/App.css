@@ -1,0 +1,19 @@
+.App {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.App-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.App-header h1 {
+  color: #333;
+}
+
+.App-main {
+  display: flex;
+  flex-direction: column;
+}
