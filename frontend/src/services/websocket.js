@@ -5,7 +5,14 @@ export const connectWebSocket = (cb) => {
   if (connected) return;
   
   console.log('Connecting to WebSocket');
-  socket = new WebSocket('ws://localhost:8080/ws');
+  // Use the current hostname instead of hardcoding 'localhost'
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsHost = window.location.hostname;
+  const wsPort = '8080'; // Keep the backend port
+  const wsUrl = `${wsProtocol}//${wsHost}:${wsPort}/ws`;
+  
+  console.log(`Connecting to WebSocket at ${wsUrl}`);
+  socket = new WebSocket(wsUrl);
   
   socket.onopen = () => {
     console.log('WebSocket connection established');
@@ -21,6 +28,12 @@ export const connectWebSocket = (cb) => {
     try {
       const parsedMessage = JSON.parse(message.data);
       console.log('Received message:', parsedMessage);
+      
+      // Format system messages
+      if (parsedMessage.sender === "System") {
+        parsedMessage.isSystem = true;
+      }
+      
       cb(parsedMessage);
     } catch (error) {
       console.error('Error parsing message:', error);

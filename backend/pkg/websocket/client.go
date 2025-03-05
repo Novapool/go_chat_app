@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -31,14 +32,22 @@ func (c *Client) Read() {
 	}()
 
 	for {
-		messageType, p, err := c.Conn.ReadMessage()
+		_, p, err := c.Conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		message := Message{Type: messageType, Body: string(p), Sender: c.ID}
-		c.Pool.Broadcast <- message
-		fmt.Printf("Message Received: %+v\n", message)
+
+		// Parse the incoming JSON message
+		var receivedMsg Message
+		if err := json.Unmarshal(p, &receivedMsg); err != nil {
+			log.Println("Error parsing message:", err)
+			continue
+		}
+
+		// Forward the parsed message to the pool
+		c.Pool.Broadcast <- receivedMsg
+		fmt.Printf("Message Received: %+v\n", receivedMsg)
 	}
 }
 
@@ -48,16 +57,12 @@ func (c *Client) Write() {
 		c.Conn.Close()
 	}()
 
-	for {
-		select {
-		case message, ok := <-c.Send:
-			if !ok {
-				// The pool closed the channel
-				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-
-			c.Conn.WriteMessage(websocket.TextMessage, message)
+	for message := range c.Send {
+		if err := c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
+			return
 		}
 	}
+
+	// Send close message when channel is closed
+	c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 }

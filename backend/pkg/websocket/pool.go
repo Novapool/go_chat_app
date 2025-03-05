@@ -30,31 +30,40 @@ func (pool *Pool) Start() {
 		case client := <-pool.Register:
 			pool.Clients[client] = true
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
-			for client := range pool.Clients {
-				fmt.Println(client)
-				message := Message{Type: 1, Body: "New User Joined..."}
-				messageJSON, _ := json.Marshal(message)
-				client.Send <- messageJSON
+
+			// Create personalized join message
+			joinMessage := Message{
+				Type:   1,
+				Body:   "has joined the chat",
+				Sender: "System",
 			}
-			break
+			joinMessageJSON, _ := json.Marshal(joinMessage)
+
+			// Send to all clients
+			for otherClient := range pool.Clients {
+				otherClient.Send <- joinMessageJSON
+			}
 		case client := <-pool.Unregister:
 			delete(pool.Clients, client)
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
-			for client := range pool.Clients {
-				message := Message{Type: 1, Body: "User Disconnected..."}
+			for otherClient := range pool.Clients {
+				message := Message{
+					Type:   1,
+					Body:   "has left the chat",
+					Sender: "System",
+				}
 				messageJSON, _ := json.Marshal(message)
-				client.Send <- messageJSON
+				otherClient.Send <- messageJSON
 			}
-			break
 		case message := <-pool.Broadcast:
-			fmt.Println("Sending message to all clients in Pool")
-			for client := range pool.Clients {
+			fmt.Printf("Sending message to all clients in Pool (%d clients)\n", len(pool.Clients))
+			for otherClient := range pool.Clients {
 				messageJSON, _ := json.Marshal(message)
 				select {
-				case client.Send <- messageJSON:
+				case otherClient.Send <- messageJSON:
 				default:
-					close(client.Send)
-					delete(pool.Clients, client)
+					close(otherClient.Send)
+					delete(pool.Clients, otherClient)
 				}
 			}
 		}
