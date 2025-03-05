@@ -1,0 +1,55 @@
+.message-with-file {
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: var(--bg-secondary);
+  max-width: 80%;
+}
+
+.message-with-file.dark-mode {
+  background-color: #1e1e1e;
+}
+
+.message-sender {
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.message-image-container {
+  margin-bottom: 8px;
+}
+
+.message-image {
+  max-width: 100%;
+  border-radius: 6px;
+  max-height: 300px;
+}
+
+.message-file {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--bg-tertiary);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.dark-mode .message-file {
+  background-color: #2d2d2d;
+}
+
+.file-icon {
+  margin-right: 8px;
+}
+
+.file-name {
+  color: var(--text-secondary);
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.message-text {
+  color: var(--text-primary);
+  word-wrap: break-word;
+}
